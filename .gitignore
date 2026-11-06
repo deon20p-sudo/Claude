@@ -1,0 +1,9 @@
+node_modules/
+out/
+audio/_cache/
+voice/_model/
+*.log
+.remotion/
+audio/*.wav
+audio/__pycache__/
+voice/__pycache__/

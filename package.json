@@ -1,0 +1,30 @@
+{
+  "name": "stryker-short",
+  "version": "1.0.0",
+  "private": true,
+  "description": "\"The Grill That Grounded a Stryker\": a vertical cartoon 3D short made with the cartoon-3d-short skill (three.js inside Remotion)",
+  "scripts": {
+    "studio": "remotion studio src/index.ts",
+    "stills": "node scripts/stills.mjs",
+    "render": "remotion render src/index.ts StrykerShort out/stryker/video.mp4 --codec h264 --crf 16 --gl=angle",
+    "tsc": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@react-three/fiber": "9.3.0",
+    "@react-three/postprocessing": "3.0.4",
+    "@remotion/bundler": "4.0.540",
+    "@remotion/cli": "4.0.540",
+    "@remotion/renderer": "4.0.540",
+    "@remotion/three": "4.0.540",
+    "postprocessing": "6.39.6",
+    "react": "19.1.1",
+    "react-dom": "19.1.1",
+    "remotion": "4.0.540",
+    "three": "0.179.1"
+  },
+  "devDependencies": {
+    "@types/react": "19.1.10",
+    "@types/three": "0.179.0",
+    "typescript": "5.9.2"
+  }
+}
