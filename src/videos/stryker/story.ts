@@ -112,7 +112,7 @@ export const strykerAt = (id: number, f: number): VPose | null => {
     }
     case 5: return { x: HANGAR[0] - 2.5, z: HANGAR[2], yaw: -Math.PI / 2, cage: false, ramp: 0, dist: 0, show: true };
     case 6: { const z = C130.door - STRYKER.front + (2.2 * (f - 800)) / FPS; return { x: 0, z, yaw: 0, cage: false, ramp: 0, dist: z, show: true }; }
-    case 7: { const k = Math.min(15, Math.max(0, f - 918)), z = 15 - (3.2 * (Math.min(f, 918) - 856)) / FPS - (3.2 / FPS) * (k - (k * k) / 30); // brakes after the rocket return { x: TOWN - 0.4, z, yaw: Math.PI, cage: false, ramp: 0, dist: -z, show: true }; }
+    case 7: { const k = Math.min(15, Math.max(0, f - 918)), z = 15 - (3.2 * (Math.min(f, 918) - 856)) / FPS - (3.2 / FPS) * (k - (k * k) / 30); return { x: TOWN - 0.4, z, yaw: Math.PI, cage: false, ramp: 0, dist: -z, show: true }; }
     case 8: case 9: case 10: case 12: case 13: return { x: YARD[0], z: YARD[2], yaw: 0, cage: true, ramp: 0, dist: 0, show: id !== 10 };
     case 14: { const z = stuckPath(f, 1600); return { x: 0, z, yaw: 0, cage: true, ramp: 0, dist: z, show: true }; }
     case 15: { const z = BIG.door - 14 + 11.5 * smooth((f - 1790) / 100); return { x: BIG.x, z, yaw: 0, cage: true, ramp: 0, dist: z, show: true }; }
