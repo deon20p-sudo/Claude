@@ -416,20 +416,21 @@ export const buildSets = (root: THREE.Object3D): Sets => {
   {
     const b = new Batch(), r = rng(3);
     const sand = lam("sandAir", () => ({ map: tiled(sandHD("sandAir", "#d6c196"), 14) }));
-    b.add(planeUp(-900, 900, -900, 900, 0), sand);
+    b.add(planeUp(-900, 900, -900, 900, -0.08), sand);
     const conc = lam("concrete", () => ({ map: tiled(concreteHD(), 10) }));
-    b.add(planeUp(-70, 90, -120, 60, 0.01), conc);
-    b.add(planeUp(-400, 400, -68, -52, 0.012), conc);
+    b.add(planeUp(-70, 90, -52, 60, 0), conc);
+    b.add(planeUp(-70, 90, -120, -68, 0), conc);
+    b.add(planeUp(-400, 400, -68, -52, 0), conc);
     const line = lam("taxiLine", () => ({ map: taxiLineHD() }));
-    b.add(planeUp(-400, 400, -60.15, -59.85, 0.02), line);
-    b.add(planeUp(5.85, 6.15, -59.85, 50, 0.02), line);
-    b.add(planeUp(-42.15, -41.85, -59.85, 50, 0.02), line);
+    b.add(planeUp(-400, 400, -60.15, -59.85, 0.05), line);
+    b.add(planeUp(5.85, 6.15, -59.85, 50, 0.05), line);
+    b.add(planeUp(-42.15, -41.85, -59.85, 50, 0.05), line);
     // hangar: corrugated walls, barrel roof (casts no shadow so the inside stays lit), open toward -x
     const [hx, , hz] = HANGAR, wallM = lam("hangarWall", () => ({ map: tiled(corrugatedHD("wall", "#c2c8c9"), 2.5) })), roofM = lam("hangarRoof", () => ({ map: tiled(corrugatedHD("roof", "#a95b47"), 2.5), side: THREE.DoubleSide }));
     b.add(boxAt(hx + 10, 0, hz - 15, hx + 10.4, 8, hz + 15), wallM);
     for (const s of [-1, 1]) b.add(boxAt(hx - 10, 0, hz + s * 15 - 0.2, hx + 10.4, 8, hz + s * 15 + 0.2), wallM);
     for (const s of [-1, 1]) b.add(boxAt(hx - 10.6, 0, s < 0 ? hz - 15 : hz + 9.5, hx - 10.2, 8, s < 0 ? hz - 9.5 : hz + 15), lam("hangarDoor", () => ({ map: tiled(corrugatedHD("door", "#8ea1ad"), 2.5) })));
-    b.add(boxAt(hx - 10.2, 0, hz - 15, hx + 10.4, 0.02, hz + 15), lam("hangarFloor", () => ({ map: tiled(concreteHD(), 8), color: "#d7d7d2" })));
+    b.add(boxAt(hx - 10.2, -0.05, hz - 15, hx + 10.4, 0.03, hz + 15), lam("hangarFloor", () => ({ map: tiled(concreteHD(), 8), color: "#d7d7d2" })));
     // floor safety lines + tool chests + workbench + hanging lamps
     b.add(boxAt(hx - 9.5, 0.025, hz - 4.8, hx + 9.5, 0.03, hz - 4.6), lam("yellowPaint", () => ({ color: "#e6b93a" })));
     b.add(boxAt(hx - 9.5, 0.025, hz + 4.6, hx + 9.5, 0.03, hz + 4.8), lam("yellowPaint", () => ({ color: "#e6b93a" })));
@@ -486,8 +487,10 @@ export const buildSets = (root: THREE.Object3D): Sets => {
   // ======== DESERT TOWN + MOTOR POOL ========
   {
     const b = new Batch(), r = rng(7), X = TOWN;
-    b.add(planeUp(X - 60, X + 120, -120, 120, 0.004), lam("sandTown", () => ({ map: tiled(sandHD("sandTown", "#dcc08a"), 12) })));
-    b.add(planeUp(X - 4.5, X + 4.5, -120, 120, 0.01), lam("street", () => ({ map: tiled(sandHD("street", "#c9ad7d"), 9) })));
+    const sandT = lam("sandTown", () => ({ map: tiled(sandHD("sandTown", "#dcc08a"), 12) }));
+    b.add(planeUp(X - 300, X - 4.5, -300, 300, 0), sandT);
+    b.add(planeUp(X + 4.5, X + 300, -300, 300, 0), sandT);
+    b.add(planeUp(X - 4.5, X + 4.5, -300, 300, 0), lam("street", () => ({ map: tiled(sandHD("street", "#c9ad7d"), 9) })));
     const plasters = ["#e8d0a4", "#dcbf8e", "#efdcb8", "#d6b689", "#e7cfae", "#ccb08a"];
     const trims = ["#2f7d8c", "#3c6fb0", "#3d8f6a", "#b0573c", "#7a4f8f"];
     for (const side of [-1, 1]) {
