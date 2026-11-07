@@ -2,7 +2,7 @@
 
 mix: -14.86 LUFS integrated, true peak -1.02 dBTP, 64.500 s
 
-voice -15.0 / music -25.0 / sfx -25.2 LUFS (stems at mix gain)
+voice -15.0 / music -25.0 / sfx -25.1 LUFS (stems at mix gain)
 
 | time (s) | frame | event | dB |
 |---|---|---|---|
@@ -30,6 +30,7 @@ voice -15.0 / music -25.0 / sfx -25.2 LUFS (stems at mix gain)
 | 28.53 | 856 | ambience town | -28 |
 | 28.53 | 856 | engine (town) | -14 |
 | 30.07 | 902 | RPG whoosh R->L | -5 |
+| 30.63 | 919 | brakes | -16 |
 | 31.87 | 956 | welding | -14 |
 | 33.33 | 1000 | cage clang (reveal) | -10 |
 | 35.00 | 1050 | burger sizzle | -18 |

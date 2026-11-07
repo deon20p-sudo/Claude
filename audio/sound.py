@@ -180,6 +180,7 @@ def sfx():
     add(fades(engine(r=r, dur=3.4, base=36, load=0.6), 0.3, 0.3), F(856), -14, 0, "engine (town)")
     rk = whoosh(r, 1.1, 300, 5000, 0.35) * 1.6 + crackle(r, 1.1, 300, 0, 0.8) * 0.25
     add(np.stack([rk * np.linspace(0.3, 1.0, len(rk)), rk * np.linspace(1.0, 0.3, len(rk))]), F(902), -5, 0, "RPG whoosh R->L")
+    add(squeak(r, 0.5, 1150) * 0.8 + squeak(r, 0.5, 1320) * 0.5, F(919), -16, 0.1, "brakes")
     # cage: welding crackle, the cage clang reveal, burger sizzle
     add(crackle(r, 1.5, 150, 1.0, 0.6), F(956), -14, 0.3, "welding")
     add(clank(r, 420, 1.4, 1.0), F(1000), -10, 0, "cage clang (reveal)")
