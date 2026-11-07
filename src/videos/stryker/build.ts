@@ -301,7 +301,7 @@ export class PlaneModel {
     this.ramp.position.set(0, P.floor, 0); B.add(this.ramp);
     mesh(boxAt(-P.halfW + 0.06, -0.14, -P.rampLen, P.halfW - 0.06, 0, 0), lam("rampTop", () => ({ map: tiled(rollerFloorTex(), 2.0) })), this.ramp);
     for (const s of [-1, 1]) mesh(boxAt(s * (P.halfW - 0.06) - 0.06, -0.34, -P.rampLen, s * (P.halfW - 0.06) + 0.06, 0, 0), skin, this.ramp);
-    this.ramp.rotation.x = Math.asin(P.floor / P.rampLen);
+    this.ramp.rotation.x = -Math.asin(P.floor / P.rampLen);
     this.root.traverse((o) => { if ((o as THREE.Mesh).isMesh) { o.castShadow = true; o.receiveShadow = true; } });
   }
   pose(tip: number, t: number) { this.tip.rotation.x = -tip; this.props.forEach((p, i) => (p.rotation.z = 0.02 * Math.sin(t + i))); }
@@ -397,7 +397,7 @@ const netTex = () => ctex("net", 256, 256, (g) => {
   for (let p = -256; p < 512; p += 48) { g.beginPath(); g.moveTo(p, 0); g.lineTo(p + 256, 256); g.moveTo(p + 256, 0); g.lineTo(p, 256); g.stroke(); }
 });
 const sandbags = (b: Batch, x0: number, z0: number, x1: number, z1: number, h: number) =>
-  b.add(boxAt(x0, 0, z0, x1, h, z1), lam("sandbags", () => ({ map: rep(sandbagHD(), 1 / 1.6, 1 / 0.8) })));
+  b.add(boxAt(x0, 0, z0, x1, h, z1), lam("sandbags", () => ({ map: rep(sandbagHD(), 1 / 0.9, 1 / 0.45) })));
 const hesco = (b: Batch, x0: number, z0: number, x1: number, z1: number) => {
   const along = Math.abs(x1 - x0) > Math.abs(z1 - z0), n = Math.round(Math.max(Math.abs(x1 - x0), Math.abs(z1 - z0)) / 1.1);
   for (let i = 0; i < n; i++) {
@@ -437,17 +437,17 @@ export const buildSets = (root: THREE.Object3D): Sets => {
     b.add(boxAt(hx + 8.5, 0.95, hz + 7, hx + 9.9, 1.05, hz + 11), lam("bench", () => ({ color: "#8a6a48" })));
     for (const z of [hz + 7.2, hz + 10.8]) b.add(boxAt(hx + 8.6, 0, z - 0.06, hx + 9.8, 0.95, z + 0.06), lam("bench", () => ({ color: "#8a6a48" })));
     // portraits + medals on the back wall
-    for (const [era, z] of [["ww2", hz - 3.0], ["vietnam", hz + 3.0]] as const) {
-      const pm = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 1.9), lam("portrait" + era, () => ({ map: portraitTex(era) })));
+    for (const [era, z] of [["ww2", hz - 0.95], ["vietnam", hz + 0.95]] as const) {
+      const pm = new THREE.Mesh(new THREE.PlaneGeometry(1.3, 1.65), lam("portrait" + era, () => ({ map: portraitTex(era) })));
       pm.position.set(hx + 9.95, 3.2, z); pm.rotation.y = -Math.PI / 2; air.add(pm);
       const md = new THREE.Mesh(new THREE.PlaneGeometry(0.42, 0.52), lam("medal", () => ({ map: medalTex(), transparent: true, alphaTest: 0.4 })));
-      md.position.set(hx + 9.94, 1.85, z); md.rotation.y = -Math.PI / 2; air.add(md);
+      md.position.set(hx + 9.94, 2.0, z); md.rotation.y = -Math.PI / 2; air.add(md);
     }
     // a flag on the back wall between the portraits (stars + stripes pictogram)
     const fl = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 1.4), lam("usflag", () => ({ map: flagTex() })));
-    fl.position.set(hx + 9.95, 5.6, hz); fl.rotation.y = -Math.PI / 2; air.add(fl);
+    fl.position.set(hx + 9.95, 5.0, hz); fl.rotation.y = -Math.PI / 2; air.add(fl);
     // barrel roof: half cylinder along x
-    const roof = new THREE.CylinderGeometry(15.4, 15.4, 21.2, 32, 1, true, -Math.PI / 2, Math.PI);
+    const roof = new THREE.CylinderGeometry(15.4, 15.4, 21.2, 32, 1, true, 0, Math.PI);
     roof.rotateZ(Math.PI / 2); roof.scale(1, 0.38, 1); roof.translate(hx + 0.1, 8, hz);
     const rm = new THREE.Mesh(roof, roofM); rm.castShadow = false; rm.receiveShadow = false; air.add(rm);
     const gable = new THREE.CircleGeometry(15.4, 32, 0, Math.PI); gable.scale(1, 0.38, 1); gable.rotateY(-Math.PI / 2); gable.translate(hx + 10.4, 8, hz);

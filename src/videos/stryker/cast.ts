@@ -188,7 +188,7 @@ export const stage = (id: number, f: number, cam: Ctx): Stage => {
       if (f >= 307) fx1(out, `arrows${ks.join(",")}`, 1200, 800, (p) => fxArrows(p, ks), bx, 1.825, bz + 0.02, 2.5, 1.66, { face: 0 });
       if (f >= 334) {
         const pop = q(Math.min(1, (f - 334) / 4) * (1 + 0.15 * Math.exp(-(f - 338) / 3) * (f > 338 ? 1 : 0)), 20), n = Math.min(4, Math.floor((f - 334) / 3));
-        fx1(out, `cal${n}|${pop}`, 400, 440, (p) => fxCalendar(p, n, pop), bx + 0.42, 1.32, bz + 0.12, 0.6, 0.66, { face: 0 });
+        fx1(out, `cal${n}|${pop}`, 400, 440, (p) => fxCalendar(p, n, pop), bx + 0.3, 1.32, bz + 0.12, 0.6, 0.66, { face: 0 });
       }
       break;
     }
@@ -217,7 +217,7 @@ export const stage = (id: number, f: number, cam: Ctx): Stage => {
       } else {
         const s = strykerAt(4, f)!;
         for (let k = 0; k < 4; k++) dust(out, `r${k}`, s.x + 4.0 + k * 2.4, -58.9 + (k % 2 ? 0.5 : 0), ((f - 548 + k * 3) % 12) / 12, 1.6);
-        fx1(out, `speed${Math.floor(f / 2) % 6}`, 600, 300, (p) => fxSpeed(p, Math.floor(f / 2) % 6), s.x + 6.5, 1.3, -58.3, 7, 2.6, { face: 0, soft: true });
+        for (const [dy, dz, k] of [[0.7, 1.45, 0], [1.6, 1.45, 1], [2.3, 0.3, 2]] as const) fx1(out, `speed${(Math.floor(f / 2) + k) % 6}`, 600, 300, (p) => fxSpeed(p, (Math.floor(f / 2) + k) % 6), s.x + 2.2 + k * 1.1, dy, -58.2 + 0.2 * k, 3.6, 1.1, { soft: true });
       }
       break;
     }
@@ -236,17 +236,17 @@ export const stage = (id: number, f: number, cam: Ctx): Stage => {
     case 7: { // Iraq: a rocket-propelled grenade whooshes past the front
       commander(out, cam, f, { expr: f < RPG_PASS - LEAD ? "neutral" : "shock", look: f < RPG_PASS - LEAD ? 0 : 1 });
       for (let k = 0; k < 14; k++) { // smoke trail left behind the rocket
-        const fk = 902 + k * 1.6, age = (f - fk) / 26;
+        const fk = 902 + k * 2.4, age = (f - fk) / 26;
         if (age < 0 || age >= 1) continue;
-        const x = TOWN + 15 - ((fk - 902) * 30) / 23;
-        fx1(out, `smoke${q(age, 24)}`, 256, 256, (p) => fxSmoke(p, q(age, 24)), x, 3.0 + 0.6 * age, 4.2, 1.0 + 1.6 * age, 1.0 + 1.6 * age, { soft: true });
+        const x = TOWN + 6.4 - ((fk - 902) * 12) / 33;
+        fx1(out, `smoke${q(age, 24)}`, 256, 256, (p) => fxSmoke(p, q(age, 24)), x, 2.8 + 0.6 * age, 4.3, 1.0 + 1.6 * age, 1.0 + 1.6 * age, { soft: true });
       }
       break;
     }
     case 8: { // welding the cage; the barbecue grill
       const [yx, , yz] = YARD;
-      stand(out, cam, { i: 80, o: TROOP(1, { rifle: false }), okey: "w1" }, yx + 2.45, yz - 1.35, { prop: "torch", expr: "stern", facing: -1, blink: 0 });
-      if (f < 1000) fx1(out, `spk${Math.floor(f / 2)}`, 400, 400, (p) => fxSparks(p, Math.floor(f / 2)), yx + 1.72, 1.45, yz - 1.25, 0.6, 0.6);
+      stand(out, cam, { i: 80, o: TROOP(1, { rifle: false }), okey: "w1" }, yx + 2.55, yz - 0.1, { prop: "torch", expr: "stern", facing: -1, blink: 0 });
+      if (f < 1000) fx1(out, `spk${Math.floor(f / 2)}`, 400, 400, (p) => fxSparks(p, Math.floor(f / 2)), yx + 1.75, 1.42, yz - 0.45, 0.6, 0.6);
       stand(out, cam, { i: 81, o: TROOP(3, { rifle: false }), okey: "w2" }, yx - 2.35, yz - 2.4, { prop: "wrench", expr: "smile", blink: lidAt(f, 81) });
       stand(out, cam, { i: 82, o: TROOP(0, { rifle: false }), okey: "bbq" }, yx + 0.75, yz + 4.15, { prop: f > 1048 - LEAD ? "spatula" : null, expr: f > 1068 - LEAD ? "grin" : "smile", blink: lidAt(f, 82, [1068]) });
       if (f > 1056) for (let k = 0; k < 3; k++) { const age = ((f - 1056 + k * 9) % 27) / 27; fx1(out, `smoke${q(age, 24)}`, 256, 256, (p) => fxSmoke(p, q(age, 24), "250,250,250"), yx + 0.95, 2.45 + 0.5 * age, yz + 4.0, 0.3 + 0.3 * age, 0.3 + 0.3 * age, { soft: true }); }
@@ -262,13 +262,13 @@ export const stage = (id: number, f: number, cam: Ctx): Stage => {
     }
     case 10: { // the warhead and its firing signal
       const [wx, wy, wz] = WARHEAD;
-      stand(out, cam, { i: 84, o: TROOP(1, { rifle: false }), okey: "inst" }, wx - 2.3, wz + 0.9, { prop: "point", expr: f < 1188 - LEAD ? "smile" : "neutral", blink: lidAt(f, 84) });
+      stand(out, cam, { i: 84, o: TROOP(1, { rifle: false }), okey: "inst" }, wx - 0.4, wz + 1.25, { prop: "point", expr: f < 1188 - LEAD ? "smile" : "neutral", blink: lidAt(f, 84) });
       const u = (f - (1237 - LEAD)) / (1293 - 1237);
       if (u >= 0 && u <= 1.15) {
         const L = 2.2 * 0.47, x = wx + 1.0 - L * Math.min(1, u);
-        fx1(out, `sig${f % 4}`, 300, 200, (p) => fxSignal(p, f % 4), x + 0.13, wy + 0.2, wz + 0.05, 0.42, 0.28);
+        fx1(out, `sig${f % 4}`, 300, 200, (p) => fxSignal(p, f % 4), x + 0.13, wy + 0.2, wz + 0.32, 0.42, 0.28);
       }
-      if (f >= 1290 && f < 1300) { const k = (f - 1290) / 10; fx1(out, `burst${q(k, 30)}`, 500, 500, (p) => fxBurst(p, q(k, 30), "#fff3b0", 8, 20, 120), wx + 1.0 - 2.2 * 0.5, wy + 0.2, wz + 0.05, 0.5, 0.5); }
+      if (f >= 1290 && f < 1300) { const k = (f - 1290) / 10; fx1(out, `burst${q(k, 30)}`, 500, 500, (p) => fxBurst(p, q(k, 30), "#fff3b0", 8, 20, 120), wx + 1.0 - 2.2 * 0.5, wy + 0.2, wz + 0.32, 0.5, 0.5); }
       break;
     }
     case 11: { // the garden hose
@@ -308,7 +308,7 @@ export const stage = (id: number, f: number, cam: Ctx): Stage => {
       const happy = f > 1599 - LEAD;
       commander(out, cam, f, { expr: happy ? "laugh" : "nervous", prop: happy ? "cheer" : null, wave: q(Math.sin(f * 0.5), 20) });
       const [yx, , yz] = YARD;
-      stand(out, cam, { i: 82, o: TROOP(0, { rifle: false }), okey: "bbq" }, yx + 3.4, yz + 3.2, { prop: happy ? "cheer" : "spatula", expr: happy ? "relief_open" : "nervous", wave: q(Math.sin(f * 0.5 + 1), 20), blink: lidAt(f, 82) });
+      stand(out, cam, { i: 82, o: TROOP(0, { rifle: false }), okey: "bbq" }, yx + 2.3, yz - 0.8, { prop: happy ? "cheer" : "spatula", expr: happy ? "relief_open" : "nervous", wave: q(Math.sin(f * 0.5 + 1), 20), blink: lidAt(f, 82) });
       for (const [fh, x] of [[DUD_HIT, yx + 2.25], [DUD_HIT + 12, yx + 2.7]] as const) dust(out, `d${fh}`, x, yz + 0.6, (f - fh) / 16, 0.8);
       break;
     }
@@ -316,6 +316,7 @@ export const stage = (id: number, f: number, cam: Ctx): Stage => {
       loadmaster(2.9, -16.4, { expr: f < SAG_AT - LEAD ? "nervous" : f < 1758 ? "shock" : "neutral", prop: f < 1758 - LEAD ? null : "shrug", blink: lidAt(f, 40, [SAG_AT, 1758]) });
       if (f >= SAG_AT) { const u = q(((f - SAG_AT) * 0.08) % 1, 30); if (f < SAG_AT + 50) for (const z of [C130.door + 5, C130.door + 12]) fx1(out, `creak${u}`, 300, 300, (p) => fxCreak(p, u), -2.6, 1.6, z, 0.8, 0.8, { rot: 0.4 }); }
       commander(out, cam, f, { expr: f < SAG_AT - LEAD ? "nervous" : "shock" });
+      if (f >= 1758 && f < 1765) { const u = (f - 1758) / 7; for (const s of [-1, 1]) fx1(out, `burst${q(u, 30)}`, 500, 500, (p) => fxBurst(p, q(u, 30)), s * C130.halfW, 2.1, C130.door - 0.2, 0.9, 0.9); }
       break;
     }
     case 15: { // a bigger plane, just for the grill

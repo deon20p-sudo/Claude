@@ -585,6 +585,7 @@ export const bodyFront = (p: Pen, o: Outfit, opts: FrontOpts) => {
   const drawArm = (a: Arm) => { p.stroke(curve(a.pts[0], a.pts[1], a.pts[2]), 5.2 * u, armCol); p.dot(a.pts[2][0], a.pts[2][1], 5.5 * u); };
   // behind the body: rifle, sword, arms
   if (rifle && o.carbine) {
+    R1[0] = lerp2(R0, R1, 0.62)[0]; R1[1] = lerp2(R0, R1, 0.62)[1];
     const C1 = lerp2(R0, R1, 0.78);
     p.band([R0, C1], "#2f3134", 5.5 * u, 1.5 * u, "round");
     p.band([lerp2(R0, R1, 0.55), R1], "#2f3134", 2.2 * u, 1.2 * u, "round");
@@ -634,11 +635,15 @@ export const bodyFront = (p: Pen, o: Outfit, opts: FrontOpts) => {
     drawArm(a);
     const [hx, hy] = a.pts[2];
     if (prop === "spatula") {
+      const g0 = p.g; g0.save(); const [tx0, ty0] = p.P(hx, hy); g0.translate(tx0, ty0); g0.scale(1.7, 1.7); g0.translate(-tx0, -ty0);
+      const rot0 = p.rot; p.rot = null;
+      const P0 = p.P(hx, hy); void P0;
       p.band([[hx, hy + 6 * u], [hx + 4 * u, hy - 46 * u]], "#3b3633", 3.6 * u, 1.2 * u, "round");
       p.poly([[hx - 8 * u, hy - 44 * u], [hx + 18 * u, hy - 48 * u], [hx + 20 * u, hy - 60 * u], [hx - 8 * u, hy - 58 * u]], "#c9ccd2", 2 * u);
       p.ell(hx + 6 * u, hy - 64 * u, 15 * u, 6 * u, "#e0a24c", 2 * u, 180, 360);
       p.poly([[hx - 10 * u, hy - 64 * u], [hx + 22 * u, hy - 64 * u], [hx + 20 * u, hy - 60 * u], [hx - 8 * u, hy - 60 * u]], "#5a3220", 1.6 * u);
       p.stroke([[hx - 9 * u, hy - 65 * u], [hx - 2 * u, hy - 67 * u], [hx + 6 * u, hy - 65 * u], [hx + 14 * u, hy - 67 * u], [hx + 21 * u, hy - 65 * u]], 3 * u, "#6fbf4a");
+      p.rot = rot0; g0.restore();
       p.dot(hx, hy, 5.5 * u); continue;
     }
     if (prop === "wrench") {

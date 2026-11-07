@@ -20,7 +20,7 @@ export const lin = (pts: [number, number][], x: number) => {
 
 // ---------------- places ----------------
 /** C-130 (airfield, origin area): nose toward +z, cargo door plane at z = C130.door, ramp toe on the ground behind it */
-export const C130 = { x: 0, door: -10, floor: 1.05, ramp: 4.3, halfW: 1.56, top: 3.79 };
+export const C130 = { x: 0, door: -10, floor: 1.05, ramp: 4.3, halfW: 1.56, top: 3.62 };
 /** the bigger jet transport (end): same layout, scaled */
 export const BIG = { x: -48, door: -12, floor: 1.3, ramp: 6.0, halfW: 2.75, top: 1.3 + 3.76 };
 export const HANGAR: V3 = [40, 0, -10];
@@ -46,15 +46,15 @@ export const SHOTS: ShotDef[] = [
   { id: 7, a: 856, b: 956, light: "day", zone: "town" },     // Iraq, a rocket-propelled grenade
   { id: 8, a: 956, b: 1096, light: "day", zone: "town" },    // the cage, the barbecue grill
   { id: 9, a: 1096, b: 1154, light: "day", zone: "town" },   // wait, a grill?
-  { id: 10, a: 1154, b: 1305, light: "golden", zone: "town" }, // the warhead and its signal
+  { id: 10, a: 1154, b: 1305, light: "day", zone: "town" },    // the warhead and its signal
   { id: 11, a: 1305, b: 1424, light: "golden", zone: "garden" }, // the garden hose
   { id: 12, a: 1424, b: 1543, light: "day", zone: "town" },  // the bars pinch the nose
   { id: 13, a: 1543, b: 1640, light: "day", zone: "town" },  // the dud bounces off
   { id: 14, a: 1640, b: 1775, light: "day", zone: "air" },   // two and a half tons, wider
-  { id: 15, a: 1775, b: TOTAL, light: "golden", zone: "air" }, // a bigger plane, just for the grill
+  { id: 15, a: 1775, b: TOTAL, light: "day", zone: "air" },    // a bigger plane, just for the grill
 ];
 /** crossfades (frames) at place / time changes; a white 4-frame flash after the hook */
-export const XFADE: Record<number, number> = { 7: 8, 10: 8, 11: 8, 12: 8, 14: 8, 15: 8 };
+export const XFADE: Record<number, number> = { 7: 8, 11: 8, 12: 8, 14: 8, 15: 8 };
 export const FLASH_AT = 186;
 export const shotAt = (f: number) => SHOTS.find((s) => f >= s.a && f < s.b) ?? SHOTS[SHOTS.length - 1];
 export const layersAt = (f: number): { id: number; alpha: number }[] => {
@@ -93,7 +93,7 @@ const stuckPath = (f: number, fImpact: number) => {
   return stuckZ - 0.22 * (1 - Math.exp(-k / 3)) + 0.05 * Math.sin(k * 0.9) * Math.exp(-k / 5);
 };
 /** rocket-propelled grenade flights: shot 7 (whoosh past), shot 12 (into the cage, slow motion), shot 13 (dud drop) */
-export const RPG_PASS = 912, PINCH_F = 1441, DUD_DROP = 1588, DUD_HIT = 1599;
+export const RPG_PASS = 916, PINCH_F = 1441, DUD_DROP = 1588, DUD_HIT = 1599;
 export const CAGE_HIT: V3 = [YARD[0] + STRYKER.halfW + STRYKER.cage + 0.04, 1.42, YARD[2] + 0.6];
 /** the main Stryker of each shot (null = none in the shot) */
 export const strykerAt = (id: number, f: number): VPose | null => {
@@ -110,8 +110,8 @@ export const strykerAt = (id: number, f: number): VPose | null => {
       const x = 21 + (26 * (574 - f)) / FPS; // 60 mph past the lens on the taxiway
       return { x, z: -60, yaw: -Math.PI / 2, cage: false, ramp: 0, dist: -x, show: true, speed: 26 };
     }
-    case 5: return { x: HANGAR[0], z: HANGAR[2], yaw: -Math.PI / 2, cage: false, ramp: 0, dist: 0, show: true };
-    case 6: { const z = C130.door - STRYKER.front + (1.3 * (f - 829)) / FPS; return { x: 0, z, yaw: 0, cage: false, ramp: 0, dist: z, show: true }; }
+    case 5: return { x: HANGAR[0] - 2.5, z: HANGAR[2], yaw: -Math.PI / 2, cage: false, ramp: 0, dist: 0, show: true };
+    case 6: { const z = C130.door - STRYKER.front + (2.2 * (f - 800)) / FPS; return { x: 0, z, yaw: 0, cage: false, ramp: 0, dist: z, show: true }; }
     case 7: { const z = 15 - (3.2 * (f - 856)) / FPS; return { x: TOWN - 0.4, z, yaw: Math.PI, cage: false, ramp: 0, dist: -z, show: true }; }
     case 8: case 9: case 10: case 12: case 13: return { x: YARD[0], z: YARD[2], yaw: 0, cage: true, ramp: 0, dist: 0, show: id !== 10 };
     case 14: { const z = stuckPath(f, 1600); return { x: 0, z, yaw: 0, cage: true, ramp: 0, dist: z, show: true }; }
@@ -160,7 +160,7 @@ const Y = YARD, H = HANGAR;
 const CAMS: Record<number, Key[]> = {
   1: [
     { f: 0, s: (f) => dolly([-6.8, 2.2, -28.5], [0.3, 2.1, -14.2], pushK(f, 0, 0.0028), { fov: 44, roll: -0.03 }) },
-    { f: 110, cut: true, s: (f) => dolly([-2.5, 2.85, -18.6], [-1.15, 2.05, -10.4], pushK(f, 110, 0.003, 0.007, 20), { fov: 36, roll: 0.04 }) },
+    { f: 110, cut: true, s: (f) => dolly([0.5, 4.0, -22.5], [0, 2.35, -10.6], pushK(f, 110, 0.003, 0.007, 20), { fov: 34, roll: 0.04 }) },
     { f: 145, cut: true, s: (f) => dolly([5.6, 1.7, -21.5], [2.4, 1.55, -15.3], pushK(f, 145, 0.0025), { fov: 40 }) },
   ],
   2: [
@@ -180,17 +180,17 @@ const CAMS: Record<number, Key[]> = {
     } },
   ],
   5: [
-    { f: 594, s: (f) => dolly([33.2, 0.95, -12.2], [40, 1.7, -10], pushK(f, 594, 0.002, 0.006, 30), { fov: 40 }) },
-    { f: 636, cut: true, s: (f) => dolly([44.6, 3.0, -10], [49.6, 3.15, -10], pushK(f, 636, 0.002), { fov: 48 }) },
-    { f: 700, dur: 30, s: (f) => dolly([46.4, 3.1, -11.9], [49.6, 3.1, -12.9], pushK(f, 700, 0.002), { fov: 40, roll: 0.03 }) },
-    { f: 722, dur: 30, s: (f) => dolly([46.4, 3.1, -8.1], [49.6, 3.1, -7.1], pushK(f, 722, 0.002), { fov: 40, roll: -0.03 }) },
+    { f: 594, s: (f) => dolly([30.9, 0.95, -12.3], [37.5, 1.75, -10], pushK(f, 594, 0.002, 0.006, 30), { fov: 40 }) },
+    { f: 636, cut: true, s: (f) => dolly([44.1, 2.95, -10], [49.9, 2.95, -10], pushK(f, 636, 0.002), { fov: 52 }) },
+    { f: 700, dur: 30, s: (f) => dolly([46.5, 3.0, -10.95], [49.9, 2.9, -10.95], pushK(f, 700, 0.002), { fov: 44, roll: 0.03 }) },
+    { f: 722, dur: 30, s: (f) => dolly([46.5, 3.0, -9.05], [49.9, 2.9, -9.05], pushK(f, 722, 0.002), { fov: 44, roll: -0.03 }) },
   ],
   6: [
     { f: 750, s: (f) => dolly([-7.0, 2.4, -21.5], [0, 2.4, -12.5], pushK(f, 750, 0.0025), { fov: 44 }) },
-    { f: 815, cut: true, s: (f) => zoom([-2.9, 3.62, -13.0], [-0.2, 3.66, -9.9], 34, pushK(f, 815, 0.003), { roll: 0.03 }) },
+    { f: 815, cut: true, s: (f) => dolly([0.9, 2.95, -5.6], [-0.1, 3.55, -10.8], pushK(f, 815, 0.003), { fov: 44, roll: 0.03 }) },
   ],
   7: [
-    { f: 850, s: (f) => dolly([TOWN + 1.8, 1.05, -2.5], [TOWN - 0.4, 1.7, 9], pushK(f, 850, 0.002), { fov: 42 }) },
+    { f: 850, s: (f) => dolly([TOWN + 1.8, 1.05, -2.5], [TOWN - 0.4, 1.85, 9], pushK(f, 850, 0.002), { fov: 44 }) },
     { f: 904, dur: 18, s: (f) => dolly([TOWN + 1.8, 1.05, -2.5], [TOWN - 0.4, 1.9, 7], pushK(f, 850, 0.002) * 0.85, { fov: 40, roll: 0.05 }) },
   ],
   8: [
@@ -205,11 +205,11 @@ const CAMS: Record<number, Key[]> = {
   ],
   10: [
     { f: 1150, s: (f) => dolly(add(WARHEAD, [2.9, 0.95, 3.9]), add(WARHEAD, [-0.6, 0.2, 0]), pushK(f, 1150, 0.002), { fov: 42 }) },
-    { f: 1207, cut: true, s: (f) => dolly(add(WARHEAD, [0.05, 0.42, 1.75]), add(WARHEAD, [0.0, 0.02, 0]), pushK(f, 1207, 0.0018), { fov: 38 }) },
+    { f: 1207, cut: true, s: (f) => dolly(add(WARHEAD, [0.4, 0.5, 2.6]), add(WARHEAD, [0.45, 0.12, 0]), pushK(f, 1207, 0.0018), { fov: 40 }) },
   ],
   11: [
-    { f: 1301, s: (f) => dolly([GARDEN + 2.6, 1.75, 6.6], [GARDEN - 1.2, 0.95, -0.4], pushK(f, 1301, 0.0022), { fov: 44 }) },
-    { f: 1370, cut: true, s: (f) => dolly([GARDEN + 0.85, 1.42, 2.25], [GARDEN + 0.05, 1.3, 0], pushK(f, 1370, 0.0025, 0.006, 25), { fov: 38, roll: 0.04 }) },
+    { f: 1301, s: (f) => dolly([GARDEN + 2.3, 1.5, 4.7], [GARDEN - 0.7, 0.85, -0.6], pushK(f, 1301, 0.0022), { fov: 46 }) },
+    { f: 1370, cut: true, s: (f) => dolly([GARDEN + 0.8, 1.25, 2.1], [GARDEN + 0.1, 1.1, 0], pushK(f, 1370, 0.0025, 0.006, 25), { fov: 40, roll: 0.04 }) },
   ],
   12: [
     { f: 1420, s: (f) => dolly(add(CAGE_HIT, [2.3, 0.2, 2.6]), add(CAGE_HIT, [0.25, 0.0, -0.05]), pushK(f, 1420, 0.0018, 0.005, 25), { fov: 36 }) },
@@ -219,14 +219,14 @@ const CAMS: Record<number, Key[]> = {
   14: [
     { f: 1636, s: (f) => dolly([-12.5, 3.2, -26.5], [0, 2.6, -12.5], pushK(f, 1636, 0.002), { fov: 46 }) },
     { f: 1698, cut: true, s: (f) => dolly([6.5, 1.3, -18.5], [0.5, 2.7, -11.5], pushK(f, 1698, 0.0025, 0.006, 25), { fov: 44, roll: 0.04 }) },
-    { f: 1756, cut: true, s: (f) => dolly([0.15, 2.45, -2.2], [0, 2.1, -14], pushK(f, 1756, 0.003), { fov: 50 }) },
+    { f: 1756, cut: true, s: (f) => dolly([4.8, 1.7, -18.2], [0.7, 2.2, -11.4], pushK(f, 1756, 0.003, 0.006, 20), { fov: 40 }) },
   ],
   15: [
     { f: 1771, s: (f) => dolly([BIG.x + 9.5, 2.4, -31], [BIG.x, 2.8, -15], pushK(f, 1771, 0.002), { fov: 46 }) },
     { f: 1872, cut: true, s: (f) => {
       const u = glide((f - 1872) / 63);
-      const a: V3 = [BIG.x + 7.5, 2.6, -27], b: V3 = [BIG.x + 30, 22, -66];
-      return { pos: a.map((v, i) => v + (b[i] - v) * u) as V3, look: [BIG.x + 18 * u, 3 + 1 * u, -12 + 4 * u], fov: 44 + 2 * u, roll: 0 };
+      const a: V3 = [BIG.x + 7.5, 2.6, -27], b: V3 = [BIG.x + 22, 15, -50];
+      return { pos: a.map((v, i) => v + (b[i] - v) * u) as V3, look: [BIG.x + 11 * u, 3 + 0.5 * u, -12 + 2 * u], fov: 44 + 4 * u, roll: 0 };
     } },
   ],
 };

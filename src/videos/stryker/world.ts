@@ -26,7 +26,7 @@ const haloTex = () => ctex("sunHalo", 256, 256, (g) => {
 /** per-shot sun (degrees from the shot camera's mean forward axis; + = screen right) */
 const SUN_SHOT: Record<number, { az?: number; el?: number }> = {
   1: { az: 70, el: 42 }, 2: { az: 110, el: 40 }, 4: { az: 120, el: 50 }, 5: { az: 140, el: 55 }, 7: { az: -60, el: 46 }, 8: { az: 65 },
-  10: { az: -25, el: 9 }, 11: { az: -30, el: 10 }, 12: { az: 70, el: 50 }, 15: { az: 20, el: 7 },
+  11: { az: 115, el: 14 }, 12: { az: 70, el: 50 }, 14: { az: 60, el: 44 }, 15: { az: 70, el: 38 },
 };
 
 export class World {
@@ -76,7 +76,7 @@ export class World {
     this.tank = new TankModel(this.sets.air);
     this.rpg = rpgModel(this.sets.town, 1.6);
     this.warhead = rpgModel(this.sets.town, 2.2);
-    this.warhead.position.set(WARHEAD[0] + 1.0, WARHEAD[1] + 0.2, WARHEAD[2]); this.warhead.rotation.set(0, 0.25, 0.05);
+    this.warhead.position.set(WARHEAD[0] + 1.0, WARHEAD[1] + 0.2, WARHEAD[2]); this.warhead.rotation.set(0, 0, 0.04);
   }
 
   /** camera-relative sun frozen per shot: the shot's mean view direction turned by az toward screen right, lifted by el */
@@ -206,9 +206,9 @@ export class World {
     const r = this.rpg;
     r.visible = false;
     if (id === 7) {
-      const u = (f - 902) / 23;
-      if (u < 0 || u > 1.2) return;
-      r.visible = true; r.position.set(TOWN + 15 - 30 * u, 3.0, 4.2); r.rotation.set(0, Math.PI, 0.02);
+      const u = (f - 902) / 33;
+      if (u < 0 || u > 1.1) return;
+      r.visible = true; r.position.set(TOWN + 6 - 12 * u, 2.8, 4.2); r.rotation.set(0, Math.PI, 0.02);
     } else if (id === 12 || id === 13) {
       r.visible = true;
       const [hx, hy, hz] = CAGE_HIT as V3;
