@@ -283,13 +283,13 @@ def score():
         ch = chords[b % 4]
         cut = F(1371) if tb < F(1371) < tb + 2.0 else None
         d = 4 * BEAT if not cut else max(0.1, cut - tb)
-        put(I.pad([m2f(n_) for n_ in ch], d, 0.55, r, att=0.3, rel=0.4), tb, -16)
+        put(I.pad([m2f(n_) for n_ in ch], d, 0.55, r, att=0.3, rel=0.4), tb, -8)
         for beat in range(4):
             tp = tb + beat * BEAT
             if cut and cut <= tp < cut + 0.6: continue
-            put(I.pluck(m2f(ch[0] - 24 + (7 if beat % 2 else 0)), 0.7, r, 0.6), tp, -9, -0.1)
-            put(I.vibes(m2f(ch[beat % 4] + 12), 0.45, r, 1.0), tp + BEAT / 2, -18, 0.3)
-    for i in range(10): put(I.glock(m2f(70 + 2 * i), 0.5, r, 0.7), F(1237) + i * 0.19, -16, 0.2)
+            put(I.pluck(m2f(ch[0] - 24 + (7 if beat % 2 else 0)), 0.7, r, 0.6), tp, -2, -0.1)
+            put(I.vibes(m2f(ch[beat % 4] + 12), 0.45, r, 1.0), tp + BEAT / 2, -10, 0.3)
+    for i in range(10): put(I.glock(m2f(70 + 2 * i), 0.5, r, 0.7), F(1237) + i * 0.19, -10, 0.2)
     # D: march returns (bright), a stop on "one problem", final button on "grill"
     march(F(1543), F(1650), mel_inst="glock", bar0=0)
     put(I.brass(m2f(34), 0.6, 0.8, r, "tuba", fall=-2.0), F(1658), -4)
@@ -319,7 +319,7 @@ def main():
     # levels: music bed ~ -10 LU under the voice (+3 dB standard), SFX at -6 dB against the voice-relative level
     Lv = integrated(V)
     M *= dbg((Lv - 13 + 3) - integrated(M))
-    S *= dbg((Lv - 6 - 6) - momentary_max(S) + 6)
+    S *= dbg((Lv - 6 - 6) - momentary_max(S) + 14)
     mix = V + M + S
     g = dbg(-14.5 - integrated(mix)); mix *= g; V *= g; M *= g; S *= g
     # look-ahead peak limiter to -1.2 dBTP

@@ -1,8 +1,8 @@
 # Sound cues: The Grill That Grounded a Stryker
 
-mix: -14.90 LUFS integrated, true peak -1.05 dBTP, 64.500 s
+mix: -14.86 LUFS integrated, true peak -1.02 dBTP, 64.500 s
 
-voice -14.8 / music -24.8 / sfx -32.9 LUFS (stems at mix gain)
+voice -15.0 / music -25.0 / sfx -25.2 LUFS (stems at mix gain)
 
 | time (s) | frame | event | dB |
 |---|---|---|---|
