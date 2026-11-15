@@ -51,5 +51,9 @@ tools/compose.sh                 # final mp4
 Preview while editing shots: `node tools/render.mjs sheet && tools/sheets.sh` renders one frame per shot
 into contact sheets under `build/`.
 
-To make a different story, change the lines and staging in `src/shots.js`. To change the voice, set
-`VOICE` (for example `VOICE=af_heart`) when running `tools/tts.py`.
+To make a different story, change the lines and staging in `src/shots.js`.
+
+To swap the voice without re-rendering the picture, run
+`FIT=1 VOICE=am_michael PITCH=1.0 .venv/bin/python tools/tts.py`, then `tools/audio.py`, `tools/captions.py`
+and `tools/compose.sh`. `FIT=1` fits every new line to the existing shot timing. `PITCH` above 1 raises the
+pitch (1.06 is one semitone). The current narration is `af_heart` at natural pitch, about 207 Hz.
