@@ -15,7 +15,7 @@ ScaledBorderAndShadow: yes
 
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
-Style: Cap,Montserrat Black,94,&H00FFFFFF,&H00FFFFFF,&H00101010,&H96000000,0,0,0,0,100,100,0,0,1,8,4,5,40,40,40,1
+Style: Cap,Montserrat Black,106,&H00FFFFFF,&H00FFFFFF,&H00101010,&H96000000,0,0,0,0,100,100,0,0,1,8,4,5,40,40,40,1
 Style: End,Montserrat Black,150,&H003850FF,&H00FFFFFF,&H00101010,&H96000000,0,0,0,0,100,100,2,0,1,9,0,5,40,40,40,1
 
 [Events]
@@ -31,7 +31,7 @@ for si, s in enumerate(shots):
     chunks = []; cur = []
     for w in ws:
         txt = clean(w['w'])
-        if cur and (len(cur) >= 3 or len(' '.join(clean(x['w']) for x in cur)) + 1 + len(txt) > 14): chunks.append(cur); cur = []
+        if cur and (len(cur) >= 3 or len(' '.join(clean(x['w']) for x in cur)) + 1 + len(txt) > 13): chunks.append(cur); cur = []
         cur.append(w)
     if cur: chunks.append(cur)
     line_end = s['start'] + s['dur']

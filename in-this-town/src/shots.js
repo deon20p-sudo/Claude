@@ -174,7 +174,7 @@ export const SHOTS = [
     act: (S, u, tl, T) => { const s = L(40, 53, u); const [x, y, z, ry] = stairPos(s); S.mina.at(x, y, z, ry).walk(T * 15, 0.9).set({ lean: 0.25 }); S.lights([[300 + (x - 300) * 0.5, y + 2.4, z * 0.5, '#ffb060', 18, 14], [300, y + 6, 0, '#ffb060', 12, 16]]); [198, 199, 200].forEach((n, i) => { const a = tl - i * 0.45; S.num(n, x, y + 2.0, z, 1.0, a < 0.45 || i === 2 ? a : -1, '#ffe14a'); }); } },
   { id: 'every', t: 'She counts every one.', env: 'stairs', sfx: [['steps', 0, 7]],
     cam: (u) => { const s = L(60.2, 63.2, u); const [x, y, z] = stairPos(s); const [x2, y2, z2] = stairPos(s + 2.5); return { p: [300 + (x2 - 300) * 0.55, y2 + 0.55, z2 * 0.75], l: [x, y + 1.0, z], fov: 46, roll: 7 }; },
-    act: (S, u, tl, T) => { const s = L(60.2, 63.2, u); const [x, y, z, ry] = stairPos(s); S.mina.at(x, y, z, ry).walk(T * 15, 0.9).set({ lean: 0.2, face: 'worried' }); S.lights([[300 + (x - 300) * 0.4, y + 2.4, z * 0.4, '#ffb060', 14, 12]]); [210, 211, 212].forEach((n, i) => { const a = tl - i * 0.42; S.num(n, x, y + 1.62, z, 0.34, a < 0.42 || i === 2 ? a : -1, '#ffe14a'); }); } },
+    act: (S, u, tl, T) => { const s = L(60.2, 63.2, u); const [x, y, z, ry] = stairPos(s); S.mina.at(x, y, z, ry).walk(T * 15, 0.9).set({ lean: 0.2, face: 'worried' }); S.lights([[300 + (x - 300) * 0.4, y + 2.4, z * 0.4, '#ffb060', 14, 12]]); [210, 211, 212].forEach((n, i) => { const a = tl - i * 0.42; S.num(n, x, y + 1.5, z, 0.2, a < 0.42 || i === 2 ? a : -1, '#ffe14a'); }); } },
 
   // ---------------------------------------------------------------- the belfry
   { id: 'top', t: 'At the top, Tobias is on the floor.', env: 'storm', flash: [1.2], sh: [0, 20, 0, 13], fill: WARM,
