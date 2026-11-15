@@ -61,11 +61,22 @@ for i, s in enumerate(script):
     else:
         sp = SPEED; x = speak(s['text'], sp)
         if FIT:
-            for _ in range(3):
-                d = len(x) / SR
-                if abs(d - target) < 0.03: break
-                sp = float(np.clip(sp * d / target, 0.8, 1.6)); x = speak(s['text'], sp)
-            speeds.append(sp)
+            # search the speaking speed until the clip is as long as the line it replaces (never noticeably longer)
+            lo, hi = 0.68, 1.7; best = None; score = lambda e: e * 3 if e > 0.03 else abs(e)
+            for _ in range(8):
+                err = len(x) / SR - target
+                if best is None or score(err) < score(best[2]): best = (x, sp, err)
+                if abs(err) < 0.025: break
+                if err > 0: lo = sp
+                else: hi = sp
+                guess = sp * (len(x) / SR) / target
+                sp = guess if lo + 0.004 < guess < hi - 0.004 else (lo + hi) / 2
+                if hi - lo < 0.006: break
+                x = speak(s['text'], sp)
+            else:
+                err = len(x) / SR - target
+                if score(err) < score(best[2]): best = (x, sp, err)
+            x, sp, _ = best; speeds.append(sp)
         sf.write(path, x, SR); open(path + '.key', 'w').write(key)
     d = len(x) / SR
     if FIT:

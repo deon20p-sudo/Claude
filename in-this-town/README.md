@@ -54,6 +54,10 @@ into contact sheets under `build/`.
 To make a different story, change the lines and staging in `src/shots.js`.
 
 To swap the voice without re-rendering the picture, run
-`FIT=1 VOICE=am_michael PITCH=1.0 .venv/bin/python tools/tts.py`, then `tools/audio.py`, `tools/captions.py`
-and `tools/compose.sh`. `FIT=1` fits every new line to the existing shot timing. `PITCH` above 1 raises the
-pitch (1.06 is one semitone). The current narration is `af_heart` at natural pitch, about 207 Hz.
+`FIT=1 VOICE=am_fenrir PITCH=1.18 .venv/bin/python tools/tts.py`, then `tools/audio.py`, `tools/captions.py`
+and `SPEEDUP=1.12 tools/compose.sh`. `FIT=1` fits every new line to the existing shot timing. `PITCH` above 1
+raises the voice the way sped-up audio does (pitch and tone together) without changing its pace. `SPEEDUP`
+plays picture and sound faster together, which raises the pitch again.
+
+The current narration is the male voice `am_fenrir` with `PITCH=1.18` and `SPEEDUP=1.12`: about 187 Hz,
+and the video runs 1:57.
