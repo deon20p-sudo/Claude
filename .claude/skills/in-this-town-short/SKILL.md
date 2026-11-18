@@ -30,7 +30,7 @@ Plant three throwaway lines early; each must pay off at the end. Show the script
 - Keep the town near the map centre so the camera never shows empty sky.
 
 ## 4. Studio build order
-Follow `in-this-town-master-prompt.md`: script -> grey-box layout (STOP for approval) -> detailed town -> rule made visible -> people -> lighting -> shot list (`shots.json`) -> camera script turned 90 degrees for vertical recording -> press Play and confirm every shot ran -> user screen-records.
+Prefer `roblox-director-prompt.md` (the user's chosen director prompt: first-person kid narrator, Creator Store buildings, Terrain, live R15 avatars with FaceControls, measured shot pacing, server Script + camera LocalScript, proof sheet). Fill its IDEA and LENGTH lines and follow its STOP points exactly. Older fallback: `in-this-town-master-prompt.md`: script -> grey-box layout (STOP for approval) -> detailed town -> rule made visible -> people -> lighting -> shot list (`shots.json`) -> camera script turned 90 degrees for vertical recording -> press Play and confirm every shot ran -> user screen-records.
 
 ## 5. Code-only build order
 In a copy of `in-this-town-zero/`: edit `src/shots.js` (lines, staging, cameras), then
