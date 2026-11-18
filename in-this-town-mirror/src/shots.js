@@ -187,7 +187,7 @@ export const SHOTS = [
     cam: winCam(-29.9, 0.75, 1.9, 1.1, { fov: 38, roll: 4 }, 0.12),
     act: (S, u, tl) => { pip(S, 3.3, -29.9, R, { armR: wave(tl, -1, 9), face: 'happy' }); leo(S, 3.6, -30.6, R, { armR: wave(tl, -1, 9), face: 'happy' }); } },
   { id: 'late', lags: { leo: 0 }, t: 'Her reflection was one second late.', env: 'day',
-    cam: snapIn([GX - 1.5, 0.7, -29.2], [GX, 0.7, -29.9], 0.2, { fov: 34, roll: -5 }),
+    cam: winCam(-29.9, 0.75, 2.0, -1.2, { fov: 38, roll: -5 }, 0.2, snapIn),
     act: (S, u, tl) => { pip(S, 3.3, -29.9, R, { armR: wave(tl, 0.1, 9), face: 'happy' }); } },
   { id: 'fine', lags: { leo: 0 }, t: 'Some things never change.', env: ['day', 'dusk', 0.4], gap: 0.6,
     cam: mv([-1.5, 2.2, -40], [GX, 1.4, -30], [-3.5, 4.0, -45], [GX, 1.6, -30], { fov: 50, roll: [-2, 2], ease: 'io' }),
