@@ -1,0 +1,227 @@
+"""Sound: narration + synthesized effects + a quiet synthesized score, mixed to build/audio.wav.
+Everything is generated here with numpy - no samples or libraries of sounds are used."""
+import json, os, numpy as np, soundfile as sf
+from scipy import signal
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+SR = 44100
+tl = json.load(open(f'{ROOT}/build/timeline.json')); cues = json.load(open(f'{ROOT}/build/script.json'))
+TOTAL = tl['total'] + 0.05
+N = int(TOTAL * SR)
+rng = np.random.default_rng(7)
+shots = {s['id']: s for s in tl['shots']}
+start = lambda i: shots[i]['start']
+bus = {k: np.zeros((N, 2), dtype=np.float32) for k in ['vo', 'sfx', 'amb', 'mus']}
+
+def add(b, x, t, gain=1.0, pan=0.0):
+    i = int(t * SR)
+    if i >= N or i + len(x) <= 0: return
+    if i < 0: x = x[-i:]; i = 0
+    x = x[:N - i]
+    if x.ndim == 1: x = np.stack([x * (1 - max(0, pan)), x * (1 + min(0, pan))], 1)
+    bus[b][i:i + len(x)] += (x * gain).astype(np.float32)
+
+def tt(d): return np.arange(int(d * SR)) / SR
+def lp(x, f, o=2): return signal.sosfilt(signal.butter(o, f, 'low', fs=SR, output='sos'), x, axis=0)
+def hp(x, f, o=2): return signal.sosfilt(signal.butter(o, f, 'high', fs=SR, output='sos'), x, axis=0)
+def bp(x, a, b, o=2): return signal.sosfilt(signal.butter(o, [a, b], 'band', fs=SR, output='sos'), x, axis=0)
+def fade(x, a=0.01, b=0.05):
+    x = x.copy(); na, nb = int(a * SR), int(b * SR)
+    if na: x[:na] *= np.linspace(0, 1, na)[:, None] if x.ndim == 2 else np.linspace(0, 1, na)
+    if nb: x[-nb:] *= np.linspace(1, 0, nb)[:, None] if x.ndim == 2 else np.linspace(1, 0, nb)
+    return x
+
+# ---------------------------------------------------------------- effects
+def bell(f0=196.0, dur=5.5, bright=1.0):
+    t = tt(dur); x = np.zeros_like(t)
+    for ratio, amp, tau in [(0.5, 1.0, 5.0), (1.0, 0.85, 3.8), (1.183, 0.6, 3.0), (1.506, 0.42, 2.4), (2.0, 0.6, 1.9), (2.514, 0.3 * bright, 1.4), (2.662, 0.26 * bright, 1.2), (3.011, 0.2 * bright, 1.0), (4.166, 0.14 * bright, 0.7), (5.433, 0.09 * bright, 0.5), (6.8, 0.06 * bright, 0.35)]:
+        f = f0 * ratio
+        x += amp * np.exp(-t / tau) * (np.sin(2 * np.pi * f * t + rng.uniform(0, 6)) + 0.5 * np.sin(2 * np.pi * f * 1.004 * t + rng.uniform(0, 6)))
+    click = bp(rng.standard_normal(int(0.03 * SR)), 900, 5000) * np.exp(-tt(0.03) * 160)
+    x[:len(click)] += click * 1.2 * bright
+    x *= np.minimum(1, t / 0.004)
+    return fade(x / 3.2, 0, 0.4)
+
+def thunder(dur=3.4):
+    t = tt(dur); n = rng.standard_normal(len(t))
+    rumble = lp(n, 140, 3) * 9 * np.exp(-t / 1.1) * (0.6 + 0.4 * np.sin(2 * np.pi * (1.3 + rng.uniform(0, 1)) * t + rng.uniform(0, 6)) ** 2)
+    crack = bp(rng.standard_normal(len(t)), 300, 2600) * np.exp(-t / 0.16) * 0.9
+    crack2 = np.roll(bp(rng.standard_normal(len(t)), 200, 1400) * np.exp(-t / 0.3) * 0.5, int(0.18 * SR))
+    return fade(rumble + crack + crack2, 0.004, 0.6) * 0.5
+
+def thump(f=58.0, gain=1.0):
+    t = tt(0.34); ph = 2 * np.pi * np.cumsum(f * (1 + 1.2 * np.exp(-t * 28))) / SR
+    return fade(np.sin(ph) * np.exp(-t * 13) + 0.25 * lp(rng.standard_normal(len(t)), 220) * np.exp(-t * 40), 0.002, 0.05) * gain
+
+def heartbeat(f=58.0, gain=1.0):
+    a = thump(f, gain); b = thump(f * 0.92, gain * 0.62); x = np.zeros(int(0.6 * SR)); x[:len(a)] += a; i = int(0.22 * SR); x[i:i + len(b)] += b
+    return x
+
+def growl(dur=1.5):
+    t = tt(dur); f = 44 + 9 * np.sin(2 * np.pi * 1.1 * t) - 6 * t
+    ph = 2 * np.pi * np.cumsum(f) / SR
+    saw = sum(np.sin(ph * k) / k for k in range(1, 14))
+    x = saw * (0.7 + 0.3 * np.sin(2 * np.pi * 23 * t)) + 0.6 * bp(rng.standard_normal(len(t)), 80, 600)
+    return fade(lp(x, 700) * np.minimum(1, t / 0.12), 0.01, 0.5) * 0.4
+
+def stomp():
+    t = tt(1.1); ph = 2 * np.pi * np.cumsum(38 * (1 + 1.5 * np.exp(-t * 18))) / SR
+    return fade(np.sin(ph) * np.exp(-t * 4.5) + lp(rng.standard_normal(len(t)), 300) * np.exp(-t * 9) * 0.8, 0.002, 0.2) * 0.9
+
+def whoosh(dur=0.34):
+    t = tt(dur); n = rng.standard_normal(len(t)); out = np.zeros_like(t); K = 8
+    for i in range(K):
+        a, b = i * len(t) // K, (i + 1) * len(t) // K; fc = 400 + 2600 * np.sin(np.pi * (i + 0.5) / K)
+        out[a:b] = bp(n, fc * 0.6, fc * 1.5)[a:b]
+    return out * np.sin(np.pi * t / dur) ** 2 * 0.3
+
+def step():
+    t = tt(0.07); return bp(rng.standard_normal(len(t)), 250, 2200) * np.exp(-t * 60) * 0.35
+
+def chirp():
+    d = rng.uniform(0.06, 0.13); t = tt(d); f0 = rng.uniform(2600, 4400)
+    return np.sin(2 * np.pi * np.cumsum(f0 * (1 + 0.25 * np.sin(2 * np.pi * rng.uniform(18, 40) * t))) / SR) * np.sin(np.pi * t / d) ** 2 * 0.05
+
+def pluck(f, dur=1.4, bright=1.0):
+    t = tt(dur)
+    return (np.sin(2 * np.pi * f * t) * np.exp(-t * 4.5) + 0.3 * bright * np.sin(2 * np.pi * 2 * f * t) * np.exp(-t * 8) + 0.12 * bright * np.sin(2 * np.pi * 5.4 * f * t) * np.exp(-t * 26)) * np.minimum(1, t / 0.003)
+
+def pad(freqs, dur, cutoff=900):
+    t = tt(dur); x = np.zeros_like(t)
+    for f in freqs:
+        for det in (-0.004, 0, 0.005):
+            ph = 2 * np.pi * f * (1 + det) * t + rng.uniform(0, 6)
+            x += np.sin(ph) + 0.35 * np.sin(2 * ph) + 0.18 * np.sin(3 * ph)
+    env = np.minimum(1, t / (dur * 0.3)) * np.minimum(1, (dur - t) / (dur * 0.35))
+    return lp(x, cutoff) * env / (len(freqs) * 3)
+
+NOTE = lambda n: 440.0 * 2 ** ((n - 69) / 12)
+
+# ---------------------------------------------------------------- narration
+for s in tl['shots']:
+    if 'vo' not in s: continue
+    x, sr = sf.read(f"{ROOT}/{s['vo']['file']}", dtype='float32')
+    x = signal.resample_poly(x, SR, sr).astype(np.float32)
+    add('vo', fade(x, 0.004, 0.02), s['vo']['at'])
+v = bus['vo']; v[:] = hp(v, 70); pk = np.abs(v).max(); v /= pk
+# gentle compression so every line sits at the same level
+envl = np.maximum(lp(np.abs(v).max(1), 12), 1e-4); g = np.minimum(1, (0.28 / envl) ** 0.55); v *= g[:, None]
+def speak_level(x, win=0.2):
+    m = np.abs(x).max(1); n = int(win * SR); k = len(m) // n; r = np.sqrt((m[:k * n].reshape(k, n) ** 2).mean(1)); r = r[r > 1e-4]
+    return 20 * np.log10(np.percentile(r, 75))
+v *= 10 ** ((-15.0 - speak_level(v)) / 20); v[:] = np.tanh(v * 1.25) / 1.25   # speech sits at about -15 dB, peaks rounded off
+
+# ---------------------------------------------------------------- cues from the shot list
+def blip(up=True, n=2):
+    out = np.zeros(int(0.32 * SR))
+    for i in range(n):
+        f = (880 if up else 520) * (1.26 ** i if up else 0.79 ** i); q = tt(0.16)
+        x = (np.sin(2 * np.pi * f * q) + 0.3 * np.sin(2 * np.pi * 2 * f * q)) * np.exp(-q * 22) * np.minimum(1, q / 0.003)
+        k = int(i * 0.09 * SR); out[k:k + len(x)] += x
+    return out * 0.5
+def tick():
+    q = tt(0.05); return np.sin(2 * np.pi * 1500 * q) * np.exp(-q * 90) * 0.35
+def bark():
+    q = tt(0.16); f = 420 - 900 * q
+    x = sum(np.sin(2 * np.pi * np.cumsum(f * k) / SR) / k for k in range(1, 7)) + 0.6 * bp(rng.standard_normal(len(q)), 500, 2500)
+    return lp(x, 2600) * np.sin(np.pi * q / 0.16) ** 1.5 * 0.35
+def creak():
+    q = tt(0.7); f = 180 + 60 * np.sin(2 * np.pi * 1.3 * q)
+    x = sum(np.sin(2 * np.pi * np.cumsum(f * k) / SR) / k for k in range(1, 9)) * (0.5 + 0.5 * (np.sin(2 * np.pi * 31 * q) > 0.3))
+    return bp(x, 300, 3000) * np.sin(np.pi * q / 0.7) ** 2 * 0.25
+def snapfx():
+    q = tt(0.5); x = bp(rng.standard_normal(len(q)), 1500, 9000) * np.exp(-q * 40) * 1.2
+    for f in (2400, 3700, 5200): x += np.sin(2 * np.pi * f * q) * np.exp(-q * 18) * 0.25
+    return x
+def crashfx():
+    q = tt(1.6); x = lp(rng.standard_normal(len(q)), 900) * np.exp(-q * 5) * 2.0 + bp(rng.standard_normal(len(q)), 300, 4000) * np.exp(-q * 9) * 1.2
+    return x + stomp()[:len(q)] * 1.3 if len(stomp()) >= len(q) else x
+def gust(d=2.5):
+    q = tt(d); return bp(rng.standard_normal(len(q)), 250, 1800) * np.sin(np.pi * q / d) ** 2 * 0.6
+def sting():
+    q = tt(1.6); x = sum(np.sin(2 * np.pi * NOTE(n) * q) for n in (61, 64, 67, 70)) * np.exp(-q * 2.2)
+    return lp(x, 2500) * np.minimum(1, q / 0.01) * 0.25 + bp(rng.standard_normal(len(q)), 2000, 8000) * np.exp(-q * 6) * 0.2
+def chime():
+    out = np.zeros(int(2.2 * SR))
+    for i, n in enumerate((76, 79, 83, 88)):
+        x = pluck(NOTE(n), 1.8); k = int(i * 0.09 * SR); out[k:k + len(x)] += x[:len(out) - k] * 0.4
+    return out
+FX = {'creak': (creak, 0.8), 'ding': (lambda: pluck(NOTE(84), 1.2) * 0.5, 0.6), 'whoosh': (whoosh, 1.2), 'gust': (gust, 0.7), 'sting': (sting, 0.9),
+      'snap': (snapfx, 1.0), 'thud': (lambda: thump(70, 1.0), 1.0), 'crash': (crashfx, 1.2), 'chime': (chime, 0.8)}
+T_WIND, T_SCARED, T_SNAP, T_CRASH, T_HUG, T_SAME, T_END = start('windy'), start('scared'), start('snap'), start('crash'), start('hug'), start('same'), start('end')
+for c in cues:
+    s = shots[c['id']]; t0, d = s['start'], s['dur']
+    for e in c['sfx']:
+        name, at = e[0], e[1]; g = e[2] if len(e) > 2 else 1.0
+        if name == 'steps':
+            n = int(d * g)
+            for i in range(n): add('sfx', step(), t0 + at + i / g + rng.uniform(-0.01, 0.01), 0.14 + 0.06 * (i % 2), 0.3 * (-1) ** i)
+        elif name in FX: fn, gain = FX[name]; add('sfx', fn(), t0 + at, gain)
+    if c['whoosh'] and t0 < T_CRASH - 4: add('sfx', whoosh(), t0 - 0.05, 0.8, rng.uniform(-0.5, 0.5))
+
+# ---------------------------------------------------------------- ambience by lighting state
+def region(env_names):
+    m = np.zeros(N, dtype=np.float32)
+    for c in cues:
+        if c['env'] in env_names: s = shots[c['id']]; m[int(s['start'] * SR):int((s['start'] + s['dur']) * SR)] = 1
+    return lp(m, 6, 1).astype(np.float32)
+noise = rng.standard_normal((N, 2)).astype(np.float32)
+rain = (bp(noise, 900, 7000) * 0.05 + lp(noise, 400) * 0.04) * region(['storm', 'stormN'])[:, None]
+rain += bp(noise, 500, 2500) * 0.012 * region(['stairs'])[:, None]
+wind = (lp(noise, 500) * 0.07 + bp(noise, 500, 2500) * 0.02) * (0.6 + 0.4 * np.sin(2 * np.pi * 0.17 * np.arange(N) / SR) ** 2)[:, None] * region(['wind'])[:, None]
+bus['amb'] += (rain + wind).astype(np.float32)
+day = region(['day', 'snow', 'dusk', 'wind'])
+t = 0.3
+while t < TOTAL:
+    if day[min(N - 1, int(t * SR))] > 0.5:
+        for k in range(rng.integers(2, 5)): add('amb', chirp(), t + k * rng.uniform(0.09, 0.16), 1.0, rng.uniform(-0.7, 0.7))
+    t += rng.uniform(0.5, 1.5)
+night = region(['night', 'late'])
+cr = np.sin(2 * np.pi * 4300 * np.arange(N) / SR) * (np.sin(2 * np.pi * 34 * np.arange(N) / SR) > 0.2) * (np.sin(2 * np.pi * 1.6 * np.arange(N) / SR) > -0.2) * 0.006
+bus['amb'] += (np.stack([cr, cr * 0.7], 1) * night[:, None]).astype(np.float32)
+
+# ---------------------------------------------------------------- score
+beat = 60 / 100
+def plucks(t0, t1, prog, gain=1.0, sparse=False):
+    t = t0; bar = 0
+    while t < t1 - 0.5:
+        root, ch = prog[bar % len(prog)]
+        add('mus', pluck(NOTE(root - 12), 2.2, 0.6), t, 0.2 * gain)
+        for i, n in enumerate([ch[0], ch[2], ch[1] + 12, ch[2], ch[0] + 12, ch[2], ch[1] + 12, ch[2]]):
+            if sparse and i % 2: continue
+            add('mus', pluck(NOTE(n + 12), 1.2), t + i * beat / 2, (0.075 if i % 2 else 0.11) * gain, 0.5 * (-1) ** i)
+        t += beat * 4; bar += 1
+# curious little waltz-like day theme (Dm Bb F C)
+plucks(0.0, T_WIND, [(50, [50, 53, 57]), (46, [46, 50, 53]), (53, [53, 57, 60]), (48, [48, 52, 55])])
+plucks(T_WIND, T_SCARED, [(50, [50, 53, 57]), (46, [46, 50, 53])], 0.7, sparse=True)
+# dread: pads, then a pulse from the snap to the crash
+for ch, a, b in [([50, 56, 60], T_SCARED, T_SNAP + 0.5), ([49, 55, 58], T_SNAP, T_CRASH)]:
+    add('mus', pad([NOTE(n) for n in ch], b - a + 0.8, 1200), a - 0.4, 0.45)
+def stab(f, d=0.16):
+    q = tt(d); ph = 2 * np.pi * f * q
+    return lp(sum(np.sin(ph * k) / k for k in range(1, 9)), 1400) * np.exp(-q * 16) * np.minimum(1, q / 0.004)
+t = T_SNAP; step8 = 60 / 120 / 2; i = 0
+while t < T_CRASH - 0.05:
+    pr = (t - T_SNAP) / (T_CRASH - T_SNAP); add('mus', stab(NOTE([38, 38, 45, 38, 41, 38, 45, 44][i % 8])), t, 0.2 + 0.3 * pr, 0.2 * (-1) ** i); t += step8; i += 1
+rd = 1.8; q = tt(rd); add('mus', bp(rng.standard_normal(len(q)), 500, 5000) * (q / rd) ** 3 * 0.3, T_CRASH - rd, 0.7)
+# relief and the ending: warm pads, then the theme in major (F C Dm Bb -> F)
+add('mus', pad([NOTE(n) for n in [53, 57, 60, 65]], T_SAME - T_HUG + 1.0, 900), T_HUG - 0.2, 0.55)
+plucks(T_SAME, T_END + 0.2, [(53, [53, 57, 60]), (48, [48, 52, 55]), (50, [50, 53, 57]), (46, [46, 50, 53])], 0.9)
+add('mus', pad([NOTE(n) for n in [53, 60, 65, 69]], 4.5, 1400), T_END - 1.6, 0.55)
+
+# ---------------------------------------------------------------- mix: duck everything under the voice
+def active_rms(x, win=0.2):
+    m = np.abs(x).max(1) if x.ndim == 2 else np.abs(x); n = int(win * SR); k = len(m) // n
+    r = np.sqrt((m[:k * n].reshape(k, n) ** 2).mean(1)); r = r[r > 10 ** (-60 / 20)]
+    return 20 * np.log10(np.percentile(r, 75) + 1e-9) if len(r) else -99
+ref = active_rms(bus['vo'])
+# target levels relative to the voice while it is speaking (dB): music -17, ambience -21, effects by peak
+G = {'mus': 10 ** ((ref - 17 - active_rms(bus['mus'])) / 20), 'amb': 10 ** ((ref - 21 - active_rms(bus['amb'])) / 20), 'sfx': 0.9 / max(1e-6, np.abs(bus['sfx']).max())}
+vo_env = lp(np.abs(bus['vo']).max(1), 5, 1); duck = 1 - 0.35 * np.clip(vo_env / 0.25, 0, 1)
+mix = bus['vo'] + bus['sfx'] * G['sfx'] + bus['amb'] * (G['amb'] * duck)[:, None] + bus['mus'] * (G['mus'] * duck)[:, None]
+mix = np.tanh(mix * 1.05) / np.tanh(1.05)
+mix = mix / max(1.0, np.abs(mix).max()) * 0.85
+mix[:int(0.02 * SR)] *= np.linspace(0, 1, int(0.02 * SR))[:, None]; mix[-int(0.3 * SR):] *= np.linspace(1, 0, int(0.3 * SR))[:, None]
+sf.write(f'{ROOT}/build/audio.wav', mix.astype(np.float32), SR)
+print('audio', round(TOTAL, 2), 's | voice (while speaking)', round(ref, 1), 'dB | gains', {k: round(float(v), 3) for k, v in G.items()})
+for k in bus: print(' ', k, 'active rms', round(active_rms(bus[k] * (G.get(k, 1))), 1), 'peak', round(20 * np.log10(np.abs(bus[k] * G.get(k, 1)).max() + 1e-9), 1))
